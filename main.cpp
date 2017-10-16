@@ -10,11 +10,44 @@
 */
 
 #include <iostream>
+#include <fstream>
+#include <string>
 #include "Polynomial.h"
 using namespace std;
 
 int main(int argc, const char *argv[])
 {
-    std::cout << "Hello, World!" << std::endl;
+    string poly1;
+    string poly2;
+
+    // Gets filepath and creates ifstream object.
+    string filePath = string(argv[1]);
+    ifstream dataFile;
+    dataFile.open(filePath.c_str());
+
+    // Opens file and makes sure it is valid.
+    if(dataFile.good())
+    {
+        // Reads polynomials into string and call constructor
+        getline(dataFile, poly1);
+        getline(dataFile, poly2);
+        Polynomial polynomial1(poly1);
+        Polynomial polynomial2(poly2);
+        polynomial1.print();
+        polynomial2.print();
+
+        Polynomial poly3 = polynomial1 + polynomial2;
+        poly3.print();
+
+        // Closes file after successfully reading data into doubly linked list.
+        dataFile.close();
+    }
+    else
+    {
+        // Closes files since something went wrong.
+        // Normally I would include a cout here but the project stated there should be no other output.
+        dataFile.close();
+    }
+    cout << endl << "Everything still works!" << endl;
     return 0;
 }

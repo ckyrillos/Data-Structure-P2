@@ -23,7 +23,7 @@
 class Node
 {
 public:
-    int coeff;
+    int coef;
     int pow;
     Node * next;
     Node * prev;
@@ -33,7 +33,7 @@ public:
 
 Node::Node(int coefficient, int power, Node * nextNode, Node * prevNode)
 {
-    coeff = coefficient;
+    coef = coefficient;
     pow = power;
     next = nextNode;
     prev = prevNode;
