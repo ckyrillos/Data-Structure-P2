@@ -35,8 +35,7 @@ int main(int argc, const char *argv[])
         Polynomial polynomial2(poly2);
         polynomial1.print();
         polynomial2.print();
-
-        Polynomial poly3 = polynomial1 + polynomial2;
+        Polynomial poly3 = polynomial1 * polynomial2;
         poly3.print();
 
         // Closes file after successfully reading data into doubly linked list.

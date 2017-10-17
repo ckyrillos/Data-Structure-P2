@@ -32,10 +32,12 @@ public:
     Polynomial();
     Polynomial(string);
     ~Polynomial();
+    void sort();
     void pushBack(int, int);
-    int searchByPower(int) const;
+    Node * searchByPower(int) const;
     Polynomial operator+(const Polynomial&) const;
-    void print();
+    Polynomial operator*(const Polynomial&) const;
+    void print() const;
 
 
 private:
@@ -81,19 +83,41 @@ Polynomial::~Polynomial()
     }
 }
 
-// Linearly searches for coef associated with inputted power. Returns 0 if term doesn't exist.
-int Polynomial::searchByPower(int power) const
+// Sorts the doubly linked list
+void Polynomial::sort()
+{
+//    Node *ptr = headPtr;
+//    for (int i = 0; i < numTerms; ptr = ptr->next)
+//    {
+//        Node *temp = ptr;
+//        Node *largest = temp;
+//
+//        while (temp != NULL)
+//        {
+//            if (temp->pow > largest->pow)
+//            {
+//                largest = temp;
+//            }
+//            temp = temp->next;
+//        }
+//        largest->next = ptr->next;
+//        headPtr = ptr;
+//    }
+}
+
+// Linearly searches for Node associated with inputted power. Returns NULL if term doesn't exist.
+Node * Polynomial::searchByPower(int power) const
 {
     Node *ptr = headPtr;
     while(ptr != NULL)
     {
         if(ptr->pow == power)
         {
-            return ptr->coef;
+            return ptr;
         }
         ptr = ptr->next;
     }
-    return 0;
+    return NULL;
 }
 
 void Polynomial::pushBack(int coef, int pow)
@@ -132,8 +156,24 @@ Polynomial Polynomial::operator+(const Polynomial &other) const
 
     for (int pow = highestOrder; pow >= 0; pow--)
     {
-        coef1 = searchByPower(pow);
-        coef2 = other.searchByPower(pow);
+        if (searchByPower(pow) != NULL)
+        {
+            coef1 = searchByPower(pow)->coef;
+        }
+        else
+        {
+            coef1 = 0;
+        }
+        
+        if (other.searchByPower(pow) != NULL)
+        {
+            coef2 = other.searchByPower(pow)->coef;
+        }
+        else
+        {
+            coef2 = 0;
+        }
+
         int sum = coef1+coef2;
 
         if(sum != 0)
@@ -145,7 +185,35 @@ Polynomial Polynomial::operator+(const Polynomial &other) const
     return poly3;
 }
 
-void Polynomial::print()
+Polynomial Polynomial::operator*(const Polynomial &other) const
+{
+    Polynomial poly3;
+    int pow;
+    int coef;
+    Node *a = headPtr;
+
+    for(a; a != NULL; a = a->next)
+    {
+        Node *b = other.headPtr;
+
+        for(b; b != NULL; b = b->next)
+        {
+            coef = a->coef * b->coef;
+            pow = a->pow + b->pow;
+            if(poly3.searchByPower(pow) == NULL)
+            {
+                poly3.pushBack(coef, pow);
+            }
+            else
+            {
+               poly3.searchByPower(pow)->coef += coef;
+            }
+        }
+    }
+    return poly3;
+}
+
+void Polynomial::print() const
 {
     Node *ptr = headPtr;
     while(ptr != NULL)
@@ -173,5 +241,6 @@ void Polynomial::print()
     }
     cout << endl;
 }
+
 
 #endif //PROJECT_2_POLYNOMIAL_H
