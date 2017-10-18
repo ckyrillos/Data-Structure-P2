@@ -22,6 +22,8 @@
 #define PROJECT_2_POLYNOMIAL_H
 
 #include "Node.h"
+#include <climits>
+#include <cstdlib>
 #include <iostream>
 #include <sstream>
 #include <exception>
@@ -34,16 +36,23 @@ public:
     Polynomial(string);
     Polynomial(const Polynomial&);
     ~Polynomial();
-    void pushBack(int, int);
+    void insert(int, int);
     Node * searchByPower(int) const;
     void copyList(const Polynomial&);
     Polynomial& operator=(const Polynomial&);
     Polynomial operator+(const Polynomial&) const;
     Polynomial operator*(const Polynomial&) const;
-//    Polynomial operator^(int) const;
+    Polynomial operator^(int) const;
+    int solve(int) const;
     void clear();
     void print() const;
+    int safeAdd(int, int) const;
+    int safeMultiply(int, int) const;
 
+
+
+    //TODO: before submition, make these private
+//private:
     Node *headPtr;
     Node *tailPtr;
     int numTerms;
@@ -72,7 +81,7 @@ Polynomial::Polynomial(string nums)
     stringstream iss(nums);
     while(iss >> coef >> pow)
     {
-        pushBack(coef, pow);
+        insert(coef, pow);
     }
 }
 
@@ -106,8 +115,8 @@ Polynomial::~Polynomial()
 }
 
 
-// Adds node to end of polynomial
-void Polynomial::pushBack(int coef, int pow)
+// Inserts node in order
+void Polynomial::insert(int coef, int pow)
 {
     Node *newNode = new Node(coef, pow, NULL, NULL);
     Node * current = headPtr;
@@ -160,6 +169,7 @@ Node * Polynomial::searchByPower(int power) const
 }
 
 
+// Copies polynomial
 void Polynomial::copyList(const Polynomial &other)
 {
     Node *currentNode = other.headPtr;
@@ -169,7 +179,7 @@ void Polynomial::copyList(const Polynomial &other)
     {
         try
         {
-            pushBack(currentNode->coef, currentNode->pow);
+            insert(currentNode->coef, currentNode->pow);
         }
         catch (bad_alloc&)
         {
@@ -210,10 +220,11 @@ Polynomial& Polynomial::operator=(const Polynomial &other)
 // Overloads addition operator
 Polynomial Polynomial::operator+(const Polynomial &other) const
 {
-    Polynomial poly3;
+    Polynomial result;
     int highestOrder;
     int coef1;
     int coef2;
+    int sum;
 
     if(headPtr->pow > other.headPtr->pow)
     {
@@ -244,22 +255,22 @@ Polynomial Polynomial::operator+(const Polynomial &other) const
             coef2 = 0;
         }
 
-        int sum = coef1+coef2;
+        sum = safeAdd(coef1, coef2);
 
         if(sum != 0)
         {
-            poly3.pushBack(sum, pow);
+            result.insert(sum, pow);
         }
     }
 
-    return poly3;
+    return result;
 }
 
 
 // Overloads multiplication operator
 Polynomial Polynomial::operator*(const Polynomial &other) const
 {
-    Polynomial poly3;
+    Polynomial result;
     int pow;
     int coef;
     Node *a = headPtr;
@@ -270,28 +281,71 @@ Polynomial Polynomial::operator*(const Polynomial &other) const
 
         for(b; b != NULL; b = b->next)
         {
-            coef = a->coef * b->coef;
-            pow = a->pow + b->pow;
-            if(poly3.searchByPower(pow) == NULL)
+
+            coef = safeMultiply(a->coef, b->coef);
+
+            pow = safeAdd(a->pow, b->pow);
+            if(result.searchByPower(pow) == NULL)
             {
-                poly3.pushBack(coef, pow);
+                result.insert(coef, pow);
             }
             else
             {
-               poly3.searchByPower(pow)->coef += coef;
+               result.searchByPower(pow)->coef = safeAdd(result.searchByPower(pow)->coef, coef);
             }
         }
     }
-    return poly3;
+    return result;
 }
 
 
-//Polynomial Polynomial::operator^(int power) const
-//{
+Polynomial Polynomial::operator^(int exponent) const
+{
+    cout << "in operator " << endl;
+//    Polynomial base = *this;
+    Polynomial result;
+//    while(exponent > 0)
+//    {
+//        if (exponent % 2 == 1)
+//        {
+//            result = result * base;
+//        }
 //
-//}
+//        exponent = exponent / 2;
+//
+//        base = base * base;
+//    }
+    return result;
+}
 
 
+// Prints result of polynomial at given x
+int Polynomial::solve(int input) const
+{
+    if (numTerms == -1)
+    {
+        return INT_MAX;
+    }
+
+    Node *current = headPtr;
+    int order = current->pow;
+    int result = 0;
+    for (int i = order; i >= 0; i--)
+    {
+        if (current && current->pow == i)
+        {
+            result = safeAdd(safeMultiply(result, input), current->coef);
+            current = current->next;
+        } else
+        {
+            result = safeMultiply(result, input);
+        }
+    }
+    return result;
+}
+
+
+// Deletes all nodes and reallocates memory
 void Polynomial::clear()
 {
     Node *current = headPtr;
@@ -335,6 +389,45 @@ void Polynomial::print() const
         ptr = ptr->next;
     }
     cout << endl;
+}
+
+
+//TODO: Remove couts
+int Polynomial::safeAdd(int a, int b) const
+{
+    if ((a > 0 && b > 0) && (a > INT_MAX - b))
+    {
+        cout << "failed +MAX" << endl;
+        return INT_MAX;
+    }
+    if ((a < 0 && b < 0) && (a < INT_MIN - b))
+    {
+        cout << "failed +MIN" << endl;
+        return INT_MIN;
+    }
+    else
+    {
+        return a + b;
+    }
+}
+
+
+int Polynomial::safeMultiply(int a, int b) const
+{
+    if ((a > 0 && b > 0) && abs(a) > INT_MAX/abs(b))
+    {
+        cout << "failed *MAX" << endl;
+        return INT_MAX;
+    }
+    else if ((a < 0 && b < 0) && abs(a) < INT_MIN/abs(b))
+    {
+        cout << "failed *MIN" << endl;
+        return INT_MIN;
+    }
+    else
+    {
+        return a * b;
+    }
 }
 
 

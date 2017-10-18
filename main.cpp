@@ -33,19 +33,45 @@ int main(int argc, const char *argv[])
         getline(dataFile, poly2);
         Polynomial polynomial1(poly1);
         Polynomial polynomial2(poly2);
+
         cout << "P1 terms = " << polynomial1.numTerms << endl;
         polynomial1.print();
+
+        int x = 3;
+        int result = polynomial1.solve(x);
+        if (result == INT_MAX || result == INT_MIN)
+        {
+            cout << "OVERFLOW" << endl;
+        }
+        cout << "x = " << x << " ; y = " << result << endl;
+
+
+
         cout << "P2 terms = " << polynomial2.numTerms << endl;
         polynomial2.print();
+
+        x = 3;
+        result = polynomial2.solve(x);
+        if (result == INT_MAX || result == INT_MIN)
+        {
+            cout << "OVERFLOW" << endl;
+        }
+        cout << "x = " << x << " ; y = " << result << endl;
+
 
         Polynomial polynomial3;
         polynomial3 = polynomial1 + polynomial2;
         cout << "P1+P2 terms = " << polynomial3.numTerms << endl;
-
         polynomial3.print();
+
         polynomial3 = polynomial1 * polynomial2;
         cout << "P1*P2 terms = " << polynomial3.numTerms << endl;
         polynomial3.print();
+
+//        polynomial3 = polynomial1^2;
+//        cout << "P1^2 terms = " << polynomial3.numTerms << endl;
+//        polynomial3.print();
+
 
         // Closes file after successfully reading data into doubly linked list.
         dataFile.close();
