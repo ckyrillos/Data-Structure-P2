@@ -24,6 +24,7 @@
 #include "Node.h"
 #include <iostream>
 #include <sstream>
+#include <exception>
 using namespace std;
 
 class Polynomial
@@ -31,21 +32,24 @@ class Polynomial
 public:
     Polynomial();
     Polynomial(string);
+    Polynomial(const Polynomial&);
     ~Polynomial();
-    void sort();
     void pushBack(int, int);
     Node * searchByPower(int) const;
+    void copyList(const Polynomial&);
+    Polynomial& operator=(const Polynomial&);
     Polynomial operator+(const Polynomial&) const;
     Polynomial operator*(const Polynomial&) const;
+//    Polynomial operator^(int) const;
+    void clear();
     void print() const;
 
-
-private:
     Node *headPtr;
     Node *tailPtr;
     int numTerms;
 
 };
+
 
 // Default Constructor
 Polynomial::Polynomial()
@@ -54,6 +58,7 @@ Polynomial::Polynomial()
     tailPtr = NULL;
     numTerms = 0;
 }
+
 
 // Constructor
 Polynomial::Polynomial(string nums)
@@ -71,39 +76,73 @@ Polynomial::Polynomial(string nums)
     }
 }
 
-// Destructor
-Polynomial::~Polynomial()
+
+// Copy Constructor
+Polynomial::Polynomial(const Polynomial & other)
 {
-    Node *current = headPtr;
-    while (current)
+    if(this != &other)
     {
-        Node *next = current->next;
-        delete current;
-        current = next;
+        this->clear();
+
+        try
+        {
+            //Uses copyList to avoid code duplication
+           this->copyList(other);
+        }
+        catch(bad_alloc&)
+        {
+            string badAlloc =
+                    "There is no more available data in the heap";
+            throw badAlloc;
+        }
     }
 }
 
-// Sorts the doubly linked list
-void Polynomial::sort()
+
+// Destructor
+Polynomial::~Polynomial()
 {
-//    Node *ptr = headPtr;
-//    for (int i = 0; i < numTerms; ptr = ptr->next)
-//    {
-//        Node *temp = ptr;
-//        Node *largest = temp;
-//
-//        while (temp != NULL)
-//        {
-//            if (temp->pow > largest->pow)
-//            {
-//                largest = temp;
-//            }
-//            temp = temp->next;
-//        }
-//        largest->next = ptr->next;
-//        headPtr = ptr;
-//    }
+    clear();
 }
+
+
+// Adds node to end of polynomial
+void Polynomial::pushBack(int coef, int pow)
+{
+    Node *newNode = new Node(coef, pow, NULL, NULL);
+    Node * current = headPtr;
+    if (headPtr == NULL)
+    {
+        headPtr = tailPtr = newNode;
+    }
+    else if(headPtr->pow < newNode->pow)
+    {
+        newNode->next = headPtr;
+        newNode->next->prev = newNode;
+        headPtr = newNode;
+    }
+    else
+    {
+        while(current->next != NULL && current->next->pow > newNode->pow)
+        {
+            current = current->next;
+        }
+
+        newNode->next = current->next;
+        if (current->next != NULL)
+        {
+            newNode->next->prev = newNode;
+        }
+        else
+        {
+            tailPtr = newNode;
+        }
+        current->next = newNode;
+        newNode->prev = current;
+    }
+    numTerms++;
+}
+
 
 // Linearly searches for Node associated with inputted power. Returns NULL if term doesn't exist.
 Node * Polynomial::searchByPower(int power) const
@@ -120,24 +159,55 @@ Node * Polynomial::searchByPower(int power) const
     return NULL;
 }
 
-void Polynomial::pushBack(int coef, int pow)
+
+void Polynomial::copyList(const Polynomial &other)
 {
-    Node *n = new Node(coef, pow, NULL, NULL);
-    if (headPtr == NULL)
+    Node *currentNode = other.headPtr;
+    headPtr = NULL;
+
+    while (currentNode != NULL)
     {
-        headPtr = n;
-    }
-    if (tailPtr != NULL)
-    {
-        tailPtr->next = n;
+        try
+        {
+            pushBack(currentNode->coef, currentNode->pow);
+        }
+        catch (bad_alloc&)
+        {
+            string badAlloc =
+                    "There is no more available data in the heap.";
+            throw badAlloc;
+        }
+        currentNode = currentNode->next;
     }
 
-    n->next = NULL;
-    n->prev = tailPtr;
-    tailPtr = n;
-    numTerms++;
+    numTerms = other.numTerms;
 }
 
+
+// Overloads assignment operator
+Polynomial& Polynomial::operator=(const Polynomial &other)
+{
+    if(this != &other)
+    {
+        this->clear();
+
+        try
+        {
+            //Uses copyList to avoid code duplication
+            this->copyList(other);
+        }
+        catch(bad_alloc&)
+        {
+            string badAlloc =
+                    "There is no more available data in the heap";
+            throw badAlloc;
+        }
+    }
+    return *this;
+}
+
+
+// Overloads addition operator
 Polynomial Polynomial::operator+(const Polynomial &other) const
 {
     Polynomial poly3;
@@ -164,7 +234,7 @@ Polynomial Polynomial::operator+(const Polynomial &other) const
         {
             coef1 = 0;
         }
-        
+
         if (other.searchByPower(pow) != NULL)
         {
             coef2 = other.searchByPower(pow)->coef;
@@ -185,6 +255,8 @@ Polynomial Polynomial::operator+(const Polynomial &other) const
     return poly3;
 }
 
+
+// Overloads multiplication operator
 Polynomial Polynomial::operator*(const Polynomial &other) const
 {
     Polynomial poly3;
@@ -213,6 +285,29 @@ Polynomial Polynomial::operator*(const Polynomial &other) const
     return poly3;
 }
 
+
+//Polynomial Polynomial::operator^(int power) const
+//{
+//
+//}
+
+
+void Polynomial::clear()
+{
+    Node *current = headPtr;
+    headPtr = NULL;
+    while (current)
+    {
+        Node *next = current->next;
+        delete current;
+        current = next;
+        numTerms--;
+    }
+    tailPtr = NULL;
+}
+
+
+// Prints terms of polynomial
 void Polynomial::print() const
 {
     Node *ptr = headPtr;
