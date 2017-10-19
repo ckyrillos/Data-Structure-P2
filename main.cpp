@@ -37,6 +37,7 @@ int main(int argc, const char *argv[])
         cout << "P1 = " << polynomial1;
         cout << "P1(x=10) = ";
         int p1result = polynomial1.solve(10);
+        // Checks if int equals sentinel
         if (p1result != INT_MAX)
         {
             cout << p1result << endl << endl;
@@ -46,6 +47,7 @@ int main(int argc, const char *argv[])
         cout << "P2 = " << polynomial2;
         cout << "P2(x=10) = ";
         int p2result = polynomial2.solve(10);
+        // Checks if int equals sentinel
         if (p2result != INT_MAX)
         {
             cout << p2result << endl << endl;
@@ -57,6 +59,7 @@ int main(int argc, const char *argv[])
         cout << "P1 + P2  = " << polynomialSum;
         cout << "P1 + P2 (x=10) = ";
         int pSumResult = polynomialSum.solve(10);
+        // Checks if int equals sentinel
         if (pSumResult != INT_MAX)
         {
             cout << pSumResult << endl << endl;
@@ -65,9 +68,10 @@ int main(int argc, const char *argv[])
         // OUTPUT 4: Print product of Polynomial1 and Polynomial2 and evaluate at x=2
         Polynomial polynomialProd;
         polynomialProd = polynomial1 * polynomial2;
-        cout << "P1 * P2  = " << polynomialSum;
+        cout << "P1 * P2  = " << polynomialProd;
         cout << "P1 * P2 (x=2) = ";
-        int pProdResult = polynomialSum.solve(2);
+        int pProdResult = polynomialProd.solve(2);
+        // Checks if int equals sentinel
         if (pProdResult != INT_MAX)
         {
             cout << pProdResult << endl << endl;
@@ -81,6 +85,7 @@ int main(int argc, const char *argv[])
         // OUTPUT 5b: Print Polynomial1 raised to the value of Polynomial2 evaluated at x=5
         cout << "P2(x=5) = ";
         int p2Eval = polynomial2.solve(5);
+        // Checks if int equals sentinel
         if (p2Eval != INT_MAX)
         {
             cout << p2Eval << endl;

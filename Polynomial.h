@@ -434,6 +434,7 @@ int Polynomial::solve(int input) const throw (overflow_error)
     catch (overflow_error error)
     {
         cout << error.what() << endl;
+        // Returns sentinel which in this case is INT_MAX
         return INT_MAX;
     }
 }
@@ -467,11 +468,25 @@ void Polynomial::print() const
             // If the coef is 1, the coefficient is omitted
             if(ptr->coef == 1)
             {
-                cout << "x^" << ptr->pow;
+                if(ptr->pow == 1)
+                {
+                    cout << "x";
+                }
+                else
+                {
+                    cout << "x^" << ptr->pow;
+                }
             }
             else
             {
-                cout << ptr->coef << "x^" << ptr->pow;
+                if(ptr->pow == 1)
+                {
+                    cout << ptr->coef << "x";
+                }
+                else
+                {
+                    cout << ptr->coef << "x^" << ptr->pow;
+                }
             }
         }
         else
@@ -496,13 +511,13 @@ int Polynomial::safeAdd(int a, int b) const throw (overflow_error)
     // Checks to make sure the resulting sum won't cause an integer overflow
     if ((a > 0 && b > 0) && (a > INT_MAX - b))
     {
-        throw overflow_error("IntegerOverflow: Numbers are too large to add");
+        throw overflow_error("Overflow Detected");
     }
 
     // Checks to make sure the resulting sum won't cause an integer underflow
     if ((a < 0 && b < 0) && (a < INT_MIN - b))
     {
-        throw overflow_error("IntegerOverflow: Numbers are too small to add");
+        throw overflow_error("Overflow Detected");
     }
 
     // Since the ints can be safely added, the sum is returned
@@ -519,13 +534,13 @@ int Polynomial::safeMultiply(int a, int b) const throw (overflow_error)
     // Checks to make sure the resulting product won't cause an integer overflow
     if ((a > 0 && b > 0) && abs(a) > INT_MAX/abs(b))
     {
-        throw overflow_error("IntegerOverflow: Numbers are too large to multiply\n");
+        throw overflow_error("Overflow Detected\n");
     }
 
     // Checks to make sure the resulting product won't cause an integer underflow
     if ((a < 0 && b < 0) && abs(a) < INT_MIN/abs(b))
     {
-        throw overflow_error("IntegerOverflow: Numbers are too small to multiply\n");
+        throw overflow_error("Overflow Detected\n");
     }
 
     // Since the ints can be safely multiplied, the sum is returned
