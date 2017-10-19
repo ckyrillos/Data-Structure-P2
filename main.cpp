@@ -17,7 +17,6 @@ using namespace std;
 
 int main(int argc, const char *argv[])
 {
-
     // Gets filepath and creates ifstream object.
     string filePath = string(argv[1]);
     ifstream dataFile;
@@ -38,11 +37,7 @@ int main(int argc, const char *argv[])
         cout << "P1 = " << polynomial1;
         cout << "P1(x=10) = ";
         int p1result = polynomial1.solve(10);
-        if (p1result == INT_MAX || p1result == INT_MIN)
-        {
-            cout << "OVERFLOW" << endl << endl;
-        }
-        else
+        if (p1result != INT_MAX)
         {
             cout << p1result << endl << endl;
         }
@@ -50,12 +45,8 @@ int main(int argc, const char *argv[])
         // OUTPUT 2: Print Polynomial2 and evaluate at x=10
         cout << "P2 = " << polynomial2;
         cout << "P2(x=10) = ";
-        int p2result = polynomial1.solve(10);
-        if (p2result == INT_MAX || p2result == INT_MIN)
-        {
-            cout << "OVERFLOW" << endl << endl;
-        }
-        else
+        int p2result = polynomial2.solve(10);
+        if (p2result != INT_MAX)
         {
             cout << p2result << endl << endl;
         }
@@ -66,11 +57,7 @@ int main(int argc, const char *argv[])
         cout << "P1 + P2  = " << polynomialSum;
         cout << "P1 + P2 (x=10) = ";
         int pSumResult = polynomialSum.solve(10);
-        if (pSumResult == INT_MAX || pSumResult == INT_MIN)
-        {
-            cout << "OVERFLOW" << endl << endl;
-        }
-        else
+        if (pSumResult != INT_MAX)
         {
             cout << pSumResult << endl << endl;
         }
@@ -81,11 +68,7 @@ int main(int argc, const char *argv[])
         cout << "P1 * P2  = " << polynomialSum;
         cout << "P1 * P2 (x=2) = ";
         int pProdResult = polynomialSum.solve(2);
-        if (pProdResult == INT_MAX || pProdResult == INT_MIN)
-        {
-            cout << "OVERFLOW" << endl << endl;
-        }
-        else
+        if (pProdResult != INT_MAX)
         {
             cout << pProdResult << endl << endl;
         }
@@ -96,18 +79,17 @@ int main(int argc, const char *argv[])
         cout << "P1^3  = " << polynomialCubed;
 
         // OUTPUT 5b: Print Polynomial1 raised to the value of Polynomial2 evaluated at x=5
+        cout << "P2(x=5) = ";
         int p2Eval = polynomial2.solve(5);
-        if (pProdResult == INT_MAX || pProdResult == INT_MIN)
+        if (p2Eval != INT_MAX)
         {
-            cout << "OVERFLOW" << endl << endl;
+            cout << p2Eval << endl;
         }
-        else
-        {
-            Polynomial polynomialExpEval;
-            polynomialExpEval = polynomial1^p2Eval;
-            cout << "p2evaul = " << p2Eval << endl;
-            cout << "P1^(P2(x=5))  = " << polynomialExpEval << endl << endl;
-        }
+
+        Polynomial polynomialExpEval;
+        cout << "P1^(P2(x=5)) = ";
+        polynomialExpEval = polynomial1^p2Eval;
+        cout << polynomialExpEval;
 
         // Closes file after successfully reading data into doubly linked list.
         dataFile.close();
@@ -118,6 +100,5 @@ int main(int argc, const char *argv[])
         // Normally I would include a cout here but the project stated there should be no other output.
         dataFile.close();
     }
-    cout << endl << "Everything still works!" << endl;
     return 0;
 }

@@ -27,41 +27,47 @@
 #include <iostream>
 #include <sstream>
 #include <exception>
+#include <stdexcept>
 using namespace std;
 
 class Polynomial
 {
-    //
+    // Overloads String Insertion Operator
     friend ostream& operator<<(ostream& os, Polynomial& poly)
     {
         poly.print();
         return os;
     }
+
 public:
-    //TODO: Before sumbmission make anything that can be private, private
+    // Operators and Destructor
     Polynomial();
-    Polynomial(string);
-    Polynomial(const Polynomial&);
+    Polynomial(string) throw(bad_alloc);
+    Polynomial(const Polynomial&) throw (bad_alloc);
     ~Polynomial();
-    void insert(int, int);
-    Node * searchByPower(int) const;
-    void copyList(const Polynomial&);
-    Polynomial& operator=(const Polynomial&);
-    Polynomial operator+(const Polynomial&) const;
-    Polynomial operator*(const Polynomial&) const;
-    Polynomial operator^(int) const;
-    int solve(int) const;
-    void clear();
-    void print() const;
-    friend ostream& operator<<(ostream&, Polynomial&);
-    int safeAdd(int, int) const;
-    int safeMultiply(int, int) const;
+
+    // Public Operations
+    void copyList(const Polynomial&) throw(bad_alloc);
+    Polynomial& operator=(const Polynomial&) throw(bad_alloc);
+    Polynomial operator+(const Polynomial&) const throw(bad_alloc, overflow_error);
+    Polynomial operator*(const Polynomial&) const throw(bad_alloc, overflow_error);
+    Polynomial operator^(int) const throw(invalid_argument, overflow_error);
+    int solve(int) const throw(overflow_error);
 
 private:
     Node *headPtr;
     Node *tailPtr;
     int numTerms;
 
+    // Private Operations
+    void insert(int, int) throw(bad_alloc);
+    Node * searchByPower(int) const;
+    void clear();
+    void print() const;
+
+    // Safe Elementary Arithmetic Operators
+    int safeAdd(int, int) const throw(overflow_error);
+    int safeMultiply(int, int) const throw(overflow_error);
 };
 
 
@@ -75,38 +81,43 @@ Polynomial::Polynomial()
 
 
 // Constructor
-Polynomial::Polynomial(string nums)
+Polynomial::Polynomial(string nums) throw(bad_alloc)
 {
-    numTerms = 0;
-    headPtr = NULL;
-    tailPtr = NULL;
-    int coef;
-    int pow;
-
-    stringstream iss(nums);
-    while(iss >> coef >> pow)
+    try
     {
-        insert(coef, pow);
+        numTerms = 0;
+        headPtr = NULL;
+        tailPtr = NULL;
+        int coef;
+        int pow;
+
+        // Creates stringstream from numbers in file and reads them into nodes
+        stringstream iss(nums);
+        while(iss >> coef >> pow)
+        {
+            insert(coef, pow);
+        }
+    }
+    catch (bad_alloc error)
+    {
+        cout << error.what() << endl;
     }
 }
 
 
 // Copy Constructor
-Polynomial::Polynomial(const Polynomial & other)
+Polynomial::Polynomial(const Polynomial & other) throw(bad_alloc)
 {
-    if(this != &other)
+    try
     {
-        try
+        if(this != &other)
         {
-            //Uses copyList to avoid code duplication
-           this->copyList(other);
+            this->copyList(other);
         }
-        catch(bad_alloc&)
-        {
-            string badAlloc =
-                    "There is no more available data in the heap";
-            throw badAlloc;
-        }
+    }
+    catch (bad_alloc error)
+    {
+        cout << error.what() << endl;
     }
 }
 
@@ -119,44 +130,59 @@ Polynomial::~Polynomial()
 
 
 // Inserts node in order
-void Polynomial::insert(int coef, int pow)
+void Polynomial::insert(int coef, int pow) throw(bad_alloc)
 {
-    Node *newNode = new Node(coef, pow, NULL, NULL);
-    Node * current = headPtr;
-    if (headPtr == NULL)
+    try
     {
-        headPtr = tailPtr = newNode;
-    }
-    else if(headPtr->pow < newNode->pow)
-    {
-        newNode->next = headPtr;
-        newNode->next->prev = newNode;
-        headPtr = newNode;
-    }
-    else
-    {
-        while(current->next != NULL && current->next->pow > newNode->pow)
+        Node *newNode = new Node(coef, pow, NULL, NULL);
+        Node * current = headPtr;
+
+        // If list is empty, the newNode is set to both head and tail
+        if (headPtr == NULL)
         {
-            current = current->next;
+            headPtr = tailPtr = newNode;
         }
 
-        newNode->next = current->next;
-        if (current->next != NULL)
+        // If the list isn't empty, but the newNode belongs in front it points to the head and becomes new head
+        else if(headPtr->pow < newNode->pow)
         {
+            newNode->next = headPtr;
             newNode->next->prev = newNode;
+            headPtr = newNode;
         }
+
+        // Else the newNode is added to middle of list, if added at end, it becomes the tail
         else
         {
-            tailPtr = newNode;
+            while(current->next != NULL && current->next->pow > newNode->pow)
+            {
+                current = current->next;
+            }
+
+            newNode->next = current->next;
+            if (current->next != NULL)
+            {
+                newNode->next->prev = newNode;
+            }
+            else
+            {
+                tailPtr = newNode;
+            }
+            current->next = newNode;
+            newNode->prev = current;
         }
-        current->next = newNode;
-        newNode->prev = current;
+
+        // Increments the number of terms in the polynomial
+        numTerms++;
     }
-    numTerms++;
+    catch (bad_alloc error)
+    {
+        cout << error.what() << endl;
+    }
 }
 
 
-// Linearly searches for Node associated with inputted power. Returns NULL if term doesn't exist.
+// Linearly searches for Node associated with inputted power, returns NULL if term doesn't exist.
 Node * Polynomial::searchByPower(int power) const
 {
     Node *ptr = headPtr;
@@ -172,187 +198,244 @@ Node * Polynomial::searchByPower(int power) const
 }
 
 
-// Copies polynomial
-void Polynomial::copyList(const Polynomial &other)
+// Makes a copy of the polynomial
+void Polynomial::copyList(const Polynomial &other) throw(bad_alloc)
 {
-    Node *currentNode = other.headPtr;
-    headPtr = NULL;
-
-    while (currentNode != NULL)
+    try
     {
-        try
+        Node *currentNode = other.headPtr;
+        headPtr = NULL;
+
+        while (currentNode != NULL)
         {
             insert(currentNode->coef, currentNode->pow);
+            currentNode = currentNode->next;
         }
-        catch (bad_alloc&)
-        {
-            string badAlloc =
-                    "There is no more available data in the heap.";
-            throw badAlloc;
-        }
-        currentNode = currentNode->next;
-    }
 
-    numTerms = other.numTerms;
+        numTerms = other.numTerms;
+    }
+    catch (bad_alloc error)
+    {
+        cout << error.what() << endl;
+    }
 }
 
 
-// Overloads assignment operator
-Polynomial& Polynomial::operator=(const Polynomial &other)
+// Overloads Assignment Operator
+Polynomial& Polynomial::operator=(const Polynomial &other) throw(bad_alloc)
 {
-    if(this != &other)
+    try
     {
-        this->clear();
-
-        try
+        if(this != &other)
         {
-            //Uses copyList to avoid code duplication
+            this->clear();
             this->copyList(other);
         }
-        catch(bad_alloc&)
-        {
-            string badAlloc =
-                    "There is no more available data in the heap";
-            throw badAlloc;
-        }
+        return *this;
     }
-    return *this;
+    catch (bad_alloc error)
+    {
+        cout << error.what() << endl;
+    }
 }
 
 
-// Overloads addition operator
-Polynomial Polynomial::operator+(const Polynomial &other) const
+// Overloads Addition Operator
+Polynomial Polynomial::operator+(const Polynomial &other) const throw(bad_alloc, overflow_error)
 {
-    Polynomial result;
-    int highestOrder;
-    int coef1;
-    int coef2;
-    int sum;
+    try
+    {
+        Polynomial result;
+        int highestOrder;
+        int coef1;
+        int coef2;
+        int sum;
 
-    if(headPtr->pow > other.headPtr->pow)
-    {
-        highestOrder = headPtr->pow;
-    }
-    else
-    {
-        highestOrder = other.headPtr->pow;
-    }
-
-    for (int pow = highestOrder; pow >= 0; pow--)
-    {
-        if (searchByPower(pow) != NULL)
+        // Checks to see which term is greater
+        if(headPtr->pow > other.headPtr->pow)
         {
-            coef1 = searchByPower(pow)->coef;
+            highestOrder = headPtr->pow;
         }
         else
         {
-            coef1 = 0;
+            highestOrder = other.headPtr->pow;
         }
 
-        if (other.searchByPower(pow) != NULL)
+        // Iterates down from highest order until power is 0
+        for (int pow = highestOrder; pow >= 0; pow--)
         {
-            coef2 = other.searchByPower(pow)->coef;
-        }
-        else
-        {
-            coef2 = 0;
-        }
-
-        sum = safeAdd(coef1, coef2);
-
-        if(sum != 0)
-        {
-            result.insert(sum, pow);
-        }
-    }
-
-    return result;
-}
-
-
-// Overloads multiplication operator
-Polynomial Polynomial::operator*(const Polynomial &other) const
-{
-    Polynomial result;
-    int pow;
-    int coef;
-    Node *a = headPtr;
-
-    for(a; a != NULL; a = a->next)
-    {
-        Node *b = other.headPtr;
-
-        for(b; b != NULL; b = b->next)
-        {
-
-            coef = safeMultiply(a->coef, b->coef);
-
-            pow = safeAdd(a->pow, b->pow);
-            if(result.searchByPower(pow) == NULL)
+            // If term for this power exists get its coefficient if not set it to 0
+            if (searchByPower(pow) != NULL)
             {
-                result.insert(coef, pow);
+                coef1 = searchByPower(pow)->coef;
             }
             else
             {
-               result.searchByPower(pow)->coef = safeAdd(result.searchByPower(pow)->coef, coef);
+                coef1 = 0;
+            }
+
+            // If term for this power exists get its coefficient if not set it to 0
+            if (other.searchByPower(pow) != NULL)
+            {
+                coef2 = other.searchByPower(pow)->coef;
+            }
+            else
+            {
+                coef2 = 0;
+            }
+
+            // Adds the two sums
+            sum = safeAdd(coef1, coef2);
+
+            // If the sum isn't zero, no term at this power exists so one is created
+            if(sum != 0)
+            {
+                result.insert(sum, pow);
             }
         }
+        return result;
     }
-    return result;
+    catch (bad_alloc error)
+    {
+        cout << error.what() << endl;
+    }
+    catch (overflow_error error)
+    {
+        cout << error.what() << endl;
+        Polynomial badPoly;
+        return badPoly;
+    }
 }
 
 
-Polynomial Polynomial::operator^(int exponent) const
+// Overloads Multiplication Operator
+Polynomial Polynomial::operator*(const Polynomial &other) const throw(bad_alloc, overflow_error)
 {
-    Polynomial result;
+    try
+    {
+        Polynomial result;
+        int pow;
+        int coef;
+        Node *a = headPtr;
 
-    if (exponent < 0)
-    {
-        return result;
-    }
-    if (exponent == 0)
-    {
-        result.insert(1, 0);
-        return result;
-    }
-    else
-    {
-        result.insert(1, 0);
-
-        Polynomial base = *this;
-        while (exponent > 1)
+        for(a; a != NULL; a = a->next)
         {
-            if (exponent % 2 == 1)
+            Node *b = other.headPtr;
+
+            for(b; b != NULL; b = b->next)
             {
-                result = result * base;
+                coef = safeMultiply(a->coef, b->coef);
+                pow = safeAdd(a->pow, b->pow);
+
+                // If no term of the current power exists, one is created
+                if(result.searchByPower(pow) == NULL)
+                {
+                    result.insert(coef, pow);
+                }
+
+                // Else adds the sum to existing coefficient
+                else
+                {
+                   result.searchByPower(pow)->coef = safeAdd(result.searchByPower(pow)->coef, coef);
+                }
             }
-            exponent /= 2;
-            base = base * base;
+        }
+        return result;
+    }
+    catch (bad_alloc error)
+    {
+        cout << error.what() << endl;
+    }
+    catch (overflow_error error)
+    {
+        cout << error.what() << endl;
+        Polynomial badPoly;
+        return badPoly;
+    }
+}
+
+
+// Overloads Exponent Operator
+Polynomial Polynomial::operator^(int exponent) const throw (invalid_argument, overflow_error)
+{
+    try
+    {
+        Polynomial result;
+
+        // Tests to see if exponent is negative, throws exception if true per project parameters
+        if (exponent < 0)
+        {
+            throw invalid_argument("Exponent can't be negative");
         }
 
-        return result * base;
+        // If exponent is zero, simply inserts a term with a coefficient of 1
+        if (exponent == 0)
+        {
+            result.insert(1, 0);
+            return result;
+        }
+
+        // Else evaluate the using Fast Exponentaion
+        else
+        {
+            result.insert(1, 0);
+            Polynomial base = *this;
+            while (exponent > 1)
+            {
+                if (exponent % 2 == 1)
+                {
+                    result = result * base;
+                }
+                exponent /= 2;
+                base = base * base;
+            }
+            return result * base;
+        }
+    }
+    catch (invalid_argument error)
+    {
+        cout << error.what() << endl;
+        Polynomial badPoly;
+        return badPoly;
+    }
+    catch (overflow_error error)
+    {
+        cout << error.what() << endl;
+        Polynomial badPoly;
+        return badPoly;
     }
 }
 
 
 // Prints result of polynomial at given x
-int Polynomial::solve(int input) const
+int Polynomial::solve(int input) const throw (overflow_error)
 {
-    Node *current = headPtr;
-    int order = current->pow;
-    int result = 0;
-    for (int i = order; i >= 0; i--)
+    try
     {
-        if (current && current->pow == i)
+        Node *current = headPtr;
+        int order = current->pow;
+        int result = 0;
+
+        // Solves the polynomial using Horner's Method
+        for (int i = order; i >= 0; i--)
         {
-            result = safeAdd(safeMultiply(result, input), current->coef);
-            current = current->next;
-        } else
-        {
-            result = safeMultiply(result, input);
+            if (current && current->pow == i)
+            {
+                result = safeAdd(safeMultiply(result, input), current->coef);
+                current = current->next;
+            }
+            else
+            {
+                result = safeMultiply(result, input);
+            }
         }
+        return result;
     }
-    return result;
+    catch (overflow_error error)
+    {
+        cout << error.what() << endl;
+        return INT_MAX;
+    }
 }
 
 
@@ -378,8 +461,10 @@ void Polynomial::print() const
     Node *ptr = headPtr;
     while(ptr != NULL)
     {
+        // If the power isn't 0, append a '^' to each term
         if(ptr->pow != 0)
         {
+            // If the coef is 1, the coefficient is omitted
             if(ptr->coef == 1)
             {
                 cout << "x^" << ptr->pow;
@@ -393,6 +478,8 @@ void Polynomial::print() const
         {
             cout << ptr->coef;
         }
+
+        // If not the last term, a '+' is appended to the output.
         if(ptr != tailPtr)
         {
             cout << " + ";
@@ -403,19 +490,22 @@ void Polynomial::print() const
 }
 
 
-//TODO: Remove couts
-int Polynomial::safeAdd(int a, int b) const
+// Function to add two ints so long as their sum won't cause an integer overflow/underflow
+int Polynomial::safeAdd(int a, int b) const throw (overflow_error)
 {
+    // Checks to make sure the resulting sum won't cause an integer overflow
     if ((a > 0 && b > 0) && (a > INT_MAX - b))
     {
-        cout << "failed +MAX" << endl;
-        return INT_MAX;
+        throw overflow_error("IntegerOverflow: Numbers are too large to add");
     }
+
+    // Checks to make sure the resulting sum won't cause an integer underflow
     if ((a < 0 && b < 0) && (a < INT_MIN - b))
     {
-        cout << "failed +MIN" << endl;
-        return INT_MIN;
+        throw overflow_error("IntegerOverflow: Numbers are too small to add");
     }
+
+    // Since the ints can be safely added, the sum is returned
     else
     {
         return a + b;
@@ -423,23 +513,26 @@ int Polynomial::safeAdd(int a, int b) const
 }
 
 
-int Polynomial::safeMultiply(int a, int b) const
+// Function to multiply two ints so long as their sum won't cause an integer overflow/underflow
+int Polynomial::safeMultiply(int a, int b) const throw (overflow_error)
 {
+    // Checks to make sure the resulting product won't cause an integer overflow
     if ((a > 0 && b > 0) && abs(a) > INT_MAX/abs(b))
     {
-        cout << "failed *MAX" << endl;
-        return INT_MAX;
+        throw overflow_error("IntegerOverflow: Numbers are too large to multiply\n");
     }
+
+    // Checks to make sure the resulting product won't cause an integer underflow
     if ((a < 0 && b < 0) && abs(a) < INT_MIN/abs(b))
     {
-        cout << "failed *MIN" << endl;
-        return INT_MIN;
+        throw overflow_error("IntegerOverflow: Numbers are too small to multiply\n");
     }
+
+    // Since the ints can be safely multiplied, the sum is returned
     else
     {
         return a * b;
     }
 }
-
 
 #endif //PROJECT_2_POLYNOMIAL_H

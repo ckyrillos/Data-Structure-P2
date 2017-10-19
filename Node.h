@@ -20,6 +20,7 @@
 
 #ifndef PROJECT_2_NODE_H
 #define PROJECT_2_NODE_H
+
 class Node
 {
 public:
@@ -28,15 +29,39 @@ public:
     Node * next;
     Node * prev;
 
+    Node();
     Node(int, int, Node *, Node *);
+    ~Node();
 };
 
+
+// Default Constructor
+Node::Node()
+{
+    coef = 0;
+    pow = 0;
+    next = NULL;
+    prev = NULL;
+}
+
+
+// Constructor
 Node::Node(int coefficient, int power, Node * nextNode, Node * prevNode)
 {
     coef = coefficient;
     pow = power;
     next = nextNode;
     prev = prevNode;
+}
+
+
+// Destructor
+Node::~Node()
+{
+    coef = 0;
+    pow = 0;
+    next = NULL;
+    prev = NULL;
 }
 
 #endif //PROJECT_2_NODE_H
