@@ -31,7 +31,14 @@ using namespace std;
 
 class Polynomial
 {
+    //
+    friend ostream& operator<<(ostream& os, Polynomial& poly)
+    {
+        poly.print();
+        return os;
+    }
 public:
+    //TODO: Before sumbmission make anything that can be private, private
     Polynomial();
     Polynomial(string);
     Polynomial(const Polynomial&);
@@ -46,13 +53,11 @@ public:
     int solve(int) const;
     void clear();
     void print() const;
+    friend ostream& operator<<(ostream&, Polynomial&);
     int safeAdd(int, int) const;
     int safeMultiply(int, int) const;
 
-
-
-    //TODO: before submition, make these private
-//private:
+private:
     Node *headPtr;
     Node *tailPtr;
     int numTerms;
@@ -91,8 +96,6 @@ Polynomial::Polynomial(const Polynomial & other)
 {
     if(this != &other)
     {
-        this->clear();
-
         try
         {
             //Uses copyList to avoid code duplication
@@ -301,32 +304,40 @@ Polynomial Polynomial::operator*(const Polynomial &other) const
 
 Polynomial Polynomial::operator^(int exponent) const
 {
-    cout << "in operator " << endl;
-//    Polynomial base = *this;
     Polynomial result;
-//    while(exponent > 0)
-//    {
-//        if (exponent % 2 == 1)
-//        {
-//            result = result * base;
-//        }
-//
-//        exponent = exponent / 2;
-//
-//        base = base * base;
-//    }
-    return result;
+
+    if (exponent < 0)
+    {
+        return result;
+    }
+    if (exponent == 0)
+    {
+        result.insert(1, 0);
+        return result;
+    }
+    else
+    {
+        result.insert(1, 0);
+
+        Polynomial base = *this;
+        while (exponent > 1)
+        {
+            if (exponent % 2 == 1)
+            {
+                result = result * base;
+            }
+            exponent /= 2;
+            base = base * base;
+        }
+
+        return result * base;
+    }
 }
 
 
 // Prints result of polynomial at given x
 int Polynomial::solve(int input) const
 {
-    if (numTerms == -1)
-    {
-        return INT_MAX;
-    }
-
     Node *current = headPtr;
     int order = current->pow;
     int result = 0;
@@ -419,7 +430,7 @@ int Polynomial::safeMultiply(int a, int b) const
         cout << "failed *MAX" << endl;
         return INT_MAX;
     }
-    else if ((a < 0 && b < 0) && abs(a) < INT_MIN/abs(b))
+    if ((a < 0 && b < 0) && abs(a) < INT_MIN/abs(b))
     {
         cout << "failed *MIN" << endl;
         return INT_MIN;

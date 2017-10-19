@@ -17,61 +17,97 @@ using namespace std;
 
 int main(int argc, const char *argv[])
 {
-    string poly1;
-    string poly2;
 
     // Gets filepath and creates ifstream object.
     string filePath = string(argv[1]);
     ifstream dataFile;
     dataFile.open(filePath.c_str());
 
-    // Opens file and makes sure it is valid.
+    // Validates file
     if(dataFile.good())
     {
-        // Reads polynomials into string and call constructor
+        // Reads polynomials into strings and calls constructor
+        string poly1;
+        string poly2;
         getline(dataFile, poly1);
         getline(dataFile, poly2);
         Polynomial polynomial1(poly1);
         Polynomial polynomial2(poly2);
 
-        cout << "P1 terms = " << polynomial1.numTerms << endl;
-        polynomial1.print();
-
-        int x = 3;
-        int result = polynomial1.solve(x);
-        if (result == INT_MAX || result == INT_MIN)
+        // OUTPUT 1: Print Polynomial1 and evaluate at x=10
+        cout << "P1 = " << polynomial1;
+        cout << "P1(x=10) = ";
+        int p1result = polynomial1.solve(10);
+        if (p1result == INT_MAX || p1result == INT_MIN)
         {
-            cout << "OVERFLOW" << endl;
+            cout << "OVERFLOW" << endl << endl;
         }
-        cout << "x = " << x << " ; y = " << result << endl;
-
-
-
-        cout << "P2 terms = " << polynomial2.numTerms << endl;
-        polynomial2.print();
-
-        x = 3;
-        result = polynomial2.solve(x);
-        if (result == INT_MAX || result == INT_MIN)
+        else
         {
-            cout << "OVERFLOW" << endl;
+            cout << p1result << endl << endl;
         }
-        cout << "x = " << x << " ; y = " << result << endl;
 
+        // OUTPUT 2: Print Polynomial2 and evaluate at x=10
+        cout << "P2 = " << polynomial2;
+        cout << "P2(x=10) = ";
+        int p2result = polynomial1.solve(10);
+        if (p2result == INT_MAX || p2result == INT_MIN)
+        {
+            cout << "OVERFLOW" << endl << endl;
+        }
+        else
+        {
+            cout << p2result << endl << endl;
+        }
 
-        Polynomial polynomial3;
-        polynomial3 = polynomial1 + polynomial2;
-        cout << "P1+P2 terms = " << polynomial3.numTerms << endl;
-        polynomial3.print();
+        // OUTPUT 3: Print sum of Polynomial1 and Polynomial2 and evaluate at x=10
+        Polynomial polynomialSum;
+        polynomialSum = polynomial1 + polynomial2;
+        cout << "P1 + P2  = " << polynomialSum;
+        cout << "P1 + P2 (x=10) = ";
+        int pSumResult = polynomialSum.solve(10);
+        if (pSumResult == INT_MAX || pSumResult == INT_MIN)
+        {
+            cout << "OVERFLOW" << endl << endl;
+        }
+        else
+        {
+            cout << pSumResult << endl << endl;
+        }
 
-        polynomial3 = polynomial1 * polynomial2;
-        cout << "P1*P2 terms = " << polynomial3.numTerms << endl;
-        polynomial3.print();
+        // OUTPUT 4: Print product of Polynomial1 and Polynomial2 and evaluate at x=2
+        Polynomial polynomialProd;
+        polynomialProd = polynomial1 * polynomial2;
+        cout << "P1 * P2  = " << polynomialSum;
+        cout << "P1 * P2 (x=2) = ";
+        int pProdResult = polynomialSum.solve(2);
+        if (pProdResult == INT_MAX || pProdResult == INT_MIN)
+        {
+            cout << "OVERFLOW" << endl << endl;
+        }
+        else
+        {
+            cout << pProdResult << endl << endl;
+        }
 
-//        polynomial3 = polynomial1^2;
-//        cout << "P1^2 terms = " << polynomial3.numTerms << endl;
-//        polynomial3.print();
+        // OUTPUT 5a: Print Polynomial1 raised to third power
+        Polynomial polynomialCubed;
+        polynomialCubed = polynomial1^3;
+        cout << "P1^3  = " << polynomialCubed;
 
+        // OUTPUT 5b: Print Polynomial1 raised to the value of Polynomial2 evaluated at x=5
+        int p2Eval = polynomial2.solve(5);
+        if (pProdResult == INT_MAX || pProdResult == INT_MIN)
+        {
+            cout << "OVERFLOW" << endl << endl;
+        }
+        else
+        {
+            Polynomial polynomialExpEval;
+            polynomialExpEval = polynomial1^p2Eval;
+            cout << "p2evaul = " << p2Eval << endl;
+            cout << "P1^(P2(x=5))  = " << polynomialExpEval << endl << endl;
+        }
 
         // Closes file after successfully reading data into doubly linked list.
         dataFile.close();
